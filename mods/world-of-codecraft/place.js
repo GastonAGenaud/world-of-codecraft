@@ -6,7 +6,7 @@
 //
 // Every agent is a hero of its class: working = `work` loop at its class building; idle = `rest`
 // at the campfire; blocked = `idle` + flashing `!` + red ring + speech bubble; done = `idle` + gold
-// `?` + halo, standing at the Wall of Deeds with a hand on it (it leaves the wall when it sets out again). When the spot changes the hero walks there along the road (walk_dl / walk_ur and their
+// `?` + halo, standing at the Wailing Wall with a hand on it (it leaves the wall when it sets out again). When the spot changes the hero walks there along the road (walk_dl / walk_ur and their
 // mirrors), at its own speed. Frame-by-frame animation uses one shared data timer (~10 fps), only
 // while a visible unit needs it; movement itself is a native `left`/`top` transition. Heroes whose
 // frames aren't synced yet (tools/sync_heroes.py) stand still and breathe natively.
@@ -348,7 +348,7 @@ export default class Place {
     });
   }
 
-  /** The Wall of Deeds, crossfaded to its night version like the world. */
+  /** The Wailing Wall, crossfaded to its night version like the world. */
   wall(nightK) {
     const [x, y] = WALL.at;
     let el = div().absolute().left(x).top(y).w(WALL.w).h(WALL.h);

@@ -9,7 +9,7 @@ in Valbrume, a village drawn in isometric pixel art, built around one big termin
   Mage at the tower, Codex an Artificer at the forge, Gemini a Priest at the temple,
   OpenCode a Ranger at the barn, and so on. Its race and name come from its terminal.
 - **The village shows what each hero is doing.** A hero who needs you raises a flashing
-  `!`. A hero who has finished walks to the Wall of Deeds and stands with a hand on the stones under a golden `?`; when it sets out again it leaves the wall for its building. Idle heroes sit around the campfire.
+  `!`. A hero who has finished walks to the Wailing Wall and stands with a hand on the stones under a golden `?`; when it sets out again it leaves the wall for its building. Idle heroes sit around the campfire.
 - **With the optional activity integration, heroes act out the work itself.** A hero
   reading code scouts at the forest edge under circling ravens. Editing code or running
   commands, it fights a creature (imp, wolf, goblin, boar, rust golem, spectre), one blow per successful edit; a

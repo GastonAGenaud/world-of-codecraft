@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Draws the Wall of Deeds (art/monde/mur.png via `tools/wall_png.py | convert pam:- PNG32:art/monde/mur.png`): an isometric crenellated stone wall, one logical px per pixel.
+"""Draws the Wailing Wall (art/monde/mur.png via `tools/wall_png.py | convert pam:- PNG32:art/monde/mur.png`): an isometric crenellated stone wall, one logical px per pixel.
 
 Its front face runs down-right at the 2:1 iso slope and faces the viewer (south-west), so a hero standing
 in front of it, back turned, has a hand on the stones. Geometry is shared with lieux.js (WALL).

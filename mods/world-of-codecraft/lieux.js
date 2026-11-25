@@ -14,7 +14,7 @@ export const SPOTS = {
   etal1: [[2020, 395], [1735, 320], [1040, 318], [960, 316], [1190, 392]], // market stalls (rogue)
 };
 
-/** The Wall of Deeds between the temple and the barracks (art/monde/mur.png, tools/wall_png.py): a done
+/** The Wailing Wall between the temple and the barracks (art/monde/mur.png, tools/wall_png.py): a done
  *  hero walks to it and stands with a hand on the stones until it sets out again. `at` is the image's top-left;
  *  the front face's foot runs from base[0] to base[1]. */
 export const WALL = { at: [2150, 50], w: 164, h: 128, base: [[2150, 100], [2300, 175]] };
