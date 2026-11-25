@@ -100,7 +100,7 @@ const S = {
     scroll: "Scroll",
     splitR: "Split right", splitD: "Split down", zoom: "Zoom", close: "Close",
     // places
-    building: { grange: "Barn and fields", tour: "Mage Tower", atelier: "Forge Workshop", hotel: "Town Hall", taverne: "Tavern", temple: "Temple of Dawn", caserne: "Barracks" },
+    building: { grange: "Barn and fields", tour: "Mage Tower", atelier: "Forge Workshop", hotel: "Town Hall", taverne: "Tavern", temple: "Temple of Dawn", caserne: "Barracks", mur: "Wall of Deeds" },
     market: "Market",
     campfire: "Campfire",
     gate: "Gate",
@@ -180,7 +180,7 @@ const S = {
     animOffTip: "Images fixes.\nClic : animer le village (scènes, ennemis)",
     scroll: "Parchemin",
     splitR: "Fendre à droite", splitD: "Fendre en bas", zoom: "Agrandir", close: "Fermer",
-    building: { grange: "Grange et champs", tour: "Tour des mages", atelier: "Atelier-forge", hotel: "Hôtel de ville", taverne: "Taverne", temple: "Temple de l'Aube", caserne: "Caserne" },
+    building: { grange: "Grange et champs", tour: "Tour des mages", atelier: "Atelier-forge", hotel: "Hôtel de ville", taverne: "Taverne", temple: "Temple de l'Aube", caserne: "Caserne", mur: "Mur des Exploits" },
     market: "Marché",
     campfire: "Feu de camp",
     gate: "Porte",

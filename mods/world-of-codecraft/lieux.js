@@ -14,6 +14,13 @@ export const SPOTS = {
   etal1: [[2020, 395], [1735, 320], [1040, 318], [960, 316], [1190, 392]], // market stalls (rogue)
 };
 
+/** The Wall of Deeds between the temple and the barracks (art/monde/mur.png, tools/wall_png.py): a done
+ *  hero walks to it and stands with a hand on the stones until it sets out again. `at` is the image's top-left;
+ *  the front face's foot runs from base[0] to base[1]. */
+export const WALL = { at: [2150, 50], w: 164, h: 128, base: [[2150, 100], [2300, 175]] };
+/** Feet points in front of the wall (a few px towards the viewer from its foot), facing it. */
+export const WALL_SPOTS = [2172, 2200, 2228, 2256, 2284, 2186, 2242, 2270].map((x) => [x - 4, 100 + (x - 2150) / 2 + 8]);
+
 /** Scout spots at the forest edge near each class building (the "éclaireur" scene: reading, searching). */
 export const LISIERE = {
   tour: [[455, 212], [480, 250], [430, 240]],
@@ -43,6 +50,7 @@ export const BUILDINGS = {
   taverne: { get nom() { return t("building").taverne; }, box: [1475, 40, 230, 250] },
   temple: { get nom() { return t("building").temple; }, box: [1890, 10, 270, 350] },
   caserne: { get nom() { return t("building").caserne; }, box: [2330, 100, 240, 220] },
+  mur: { get nom() { return t("building").mur; }, box: [2150, 50, 164, 128] },
 };
 /** The market's name in the current language. */
 export const market = () => t("market");

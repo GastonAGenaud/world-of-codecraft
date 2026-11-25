@@ -65,7 +65,10 @@ the clock. The art is original: it imitates no existing game.
   - **working**: the hero plays its `work` animation at its building.
   - **idle**: it sits by the campfire (`rest`).
   - **blocked**: `idle` with a red ring, a flashing `!` and a speech bubble.
-  - **done**: `idle` with a gold ring, a `?` and sparkles.
+  - **done**: walks to the Wall of Deeds (between the temple and the barracks, `WALL` in lieux.js,
+    drawn by `tools/wall_png.py`) and stands back turned on a still `walk_ur` frame, a hand on the
+    stones where a rune glows, with a gold ring, a `?` and sparkles. Back to `working`, it leaves the
+    wall for its building.
 - **Movement:** when its spot changes, a hero walks there. Close spots are reached in
   a straight line. Farther ones follow the road, with a 4-direction walk animation.
   Each road leg is a native `left`/`top` transition.

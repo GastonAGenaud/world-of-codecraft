@@ -6,7 +6,7 @@
 //
 // Every agent is a hero of its class: working = `work` loop at its class building; idle = `rest`
 // at the campfire; blocked = `idle` + flashing `!` + red ring + speech bubble; done = `idle` + gold
-// `?` + halo. When the spot changes the hero walks there along the road (walk_dl / walk_ur and their
+// `?` + halo, standing at the Wall of Deeds with a hand on it (it leaves the wall when it sets out again). When the spot changes the hero walks there along the road (walk_dl / walk_ur and their
 // mirrors), at its own speed. Frame-by-frame animation uses one shared data timer (~10 fps), only
 // while a visible unit needs it; movement itself is a native `left`/`top` transition. Heroes whose
 // frames aren't synced yet (tools/sync_heroes.py) stand still and breathe natively.
@@ -17,7 +17,7 @@ import { agents, spaces, run, setAgentOrder, props, focused, layout, shared, set
 import { UI, C, hash, clip, heroOf, heroTitle, guards, QUEST, sky, stop } from "./kit.js";
 import { WORLD, TILES, FRONTS } from "./monde-data.js";
 import { HEROES } from "./heros-data.js";
-import { SPOTS, FIRE, REST, ROAD, BUILDINGS, market, SMOKE, GLOWS, LISIERE } from "./lieux.js";
+import { SPOTS, FIRE, REST, ROAD, BUILDINGS, market, SMOKE, GLOWS, LISIERE, WALL, WALL_SPOTS } from "./lieux.js";
 import { t as tr, detectLang } from "./i18n.js";
 import { Activites } from "./activite.js";
 import { Ambiance, behind } from "./ambiance.js";
@@ -114,7 +114,7 @@ export default class Place {
       for (const a of list) {
         const was = this.prev.get(a.address);
         const h = heroOf(a.address, a.program);
-        const where = a.status === "idle" ? tr("campfire") : placeName(h.cls);
+        const where = a.status === "idle" ? tr("campfire") : a.status === "done" ? BUILDINGS.mur.nom : placeName(h.cls);
         const quest = a.tab_name && !/^\d+$/.test(a.tab_name) ? tr("quoted", clip(a.tab_name, 34)) : "";
         if (!was) this.say(`[${where}] ${tr("arrives", heroTitle(h), h.prog)}`, a.status, a.address);
         else if (was.status !== a.status) {
@@ -152,8 +152,9 @@ export default class Place {
     const want = list.map((a) => {
       const h = a.demoHero ? { ...heroOf(a.address, a.program), race: RACE_FR[a.demoHero.split("-")[0]], cls: CLS_FR[a.demoHero.split("-")[1]] } : heroOf(a.address, a.program);
       const scout = a.status === "working" && this.act.scene(a.address) === "eclaire" && LISIERE[WORK[h.cls]];
-      const group = a.status === "idle" ? "repos" : scout ? `lisiere-${WORK[h.cls]}` : WORK[h.cls];
-      return { a, h, group, spots: group === "repos" ? REST : scout ? LISIERE[WORK[h.cls]] : SPOTS[group] };
+      const group = a.status === "idle" ? "repos" : a.status === "done" ? "mur" : scout ? `lisiere-${WORK[h.cls]}` : WORK[h.cls];
+      const spots = group === "repos" ? REST : group === "mur" ? WALL_SPOTS : scout ? LISIERE[WORK[h.cls]] : SPOTS[group];
+      return { a, h, group, spots };
     });
     // keep a unit on its current spot when it stays in the same group (no shuffling)
     for (const u of want) {
@@ -202,9 +203,10 @@ export default class Place {
     const H = HEROES[u.key];
     let name;
     if (u.leg) name = walkAnim(u.leg.b[0] - u.leg.a[0], u.leg.b[1] - u.leg.a[1]);
+    else if (u.a.status === "done") name = "walk_ur"; // back turned, a hand on the wall: one still frame
     else name = (u.a.status === "working" && this.act.anim(u.a.address)) || (u.a.status === "working" ? "work" : u.a.status === "idle" ? "rest" : "idle");
     const info = H?.anims?.[name];
-    if (info) return { name, info, frames: true };
+    if (info) return { name, info, frames: true, still: !u.leg && u.a.status === "done" };
     return { name: "stand", info: H?.stand ?? { w: 50, h: 85, ax: 25, ay: 83 }, frames: false };
   }
 
@@ -227,11 +229,19 @@ export default class Place {
     if (st === "blocked" && !u.leg) el = el.child(image(`${MONDE}/ring-blocked.png`).absolute().left(-30).top(-17).w(60).h(33).when(this.live, (e) => e.loop("opacity", { from: 0.2, to: 1, period: 460 })));
     if (st === "done" && !u.leg) el = el.child(image(`${MONDE}/ring-done.png`).absolute().left(-30).top(-17).w(60).h(33).when(this.live, (e) => e.loop("opacity", { from: 0.45, to: 1, period: 1100 })));
 
+    // a done hero touches the wall: a rune glows on the stones under its hand (behind the sprite)
+    if (st === "done" && !u.leg) {
+      el = el.child(div().absolute().left(6).top(-50).size(14).rounded_full().bg(`${C.goldLight}55`)
+        .when(this.live, (e) => e.loop("opacity", { from: 0.3, to: 1, period: 1400 })));
+      el = el.child(div().absolute().left(11).top(-45).size(4).bg(C.goldLight)
+        .when(this.live, (e) => e.loop("opacity", { from: 0.5, to: 1, period: 1400 })));
+    }
+
     // the sprite: every frame of the anim stacked (preloaded), only the current one shown
     let body;
     if (an.frames) {
       const dir = `${ART}/heros/${u.key}/${an.name}`;
-      const k = animate ? Math.floor(((t + (hash(a.address) % 997)) / 1000) * an.info.fps) % an.info.n : 0;
+      const k = animate && !an.still ? Math.floor(((t + (hash(a.address) % 997)) / 1000) * an.info.fps) % an.info.n : 0;
       body = div().absolute().left(-ax).top(-ay).w(w).h(hh)
         .children(Array.from({ length: an.info.n }, (_, i) =>
           image(`${dir}/${String(i).padStart(2, "0")}${suffix}.png`).absolute().left(0).top(0).w(w).h(hh).opacity(i === k ? 1 : 0)));
@@ -336,6 +346,15 @@ export default class Place {
       if (r) el = el.on_click((e) => { if (e.click_count === 2) run("tab.new", r.argv ? { argv: r.argv } : {}); });
       return el;
     });
+  }
+
+  /** The Wall of Deeds, crossfaded to its night version like the world. */
+  wall(nightK) {
+    const [x, y] = WALL.at;
+    let el = div().absolute().left(x).top(y).w(WALL.w).h(WALL.h);
+    if (nightK < 1) el = el.child(image(`${MONDE}/mur.png`).absolute().left(0).top(0).w(WALL.w).h(WALL.h));
+    if (nightK > 0) el = el.child(image(`${MONDE}/mur-nuit.png`).absolute().left(0).top(0).w(WALL.w).h(WALL.h).opacity(nightK));
+    return el;
   }
 
   /** A front cut-out (the object's own baked pixels), crossfaded like the world. */
@@ -485,7 +504,7 @@ export default class Place {
     this.anims = [];
     for (const u of units) {
       const an = this.anim(u);
-      const animate = this.live && !hidden && visible(u) && an.frames && (!ONLY_SELECTED || u === sel);
+      const animate = this.live && !hidden && visible(u) && an.frames && !an.still && (!ONLY_SELECTED || u === sel);
       u.animate = animate;
       if (animate || u.leg) this.anims.push({ addr: u.a.address, fps: animate ? an.info.fps : 0, n: an.info.n ?? 1, ph: hash(u.a.address) % 997 });
     }
@@ -499,6 +518,7 @@ export default class Place {
     this.amb.watch(cx, this.live && !hidden, { phase: sk.phase });
     const life = this.live ? this.amb.things(nightHeroes, sk.phase, working) : [];
     things.push(...life);
+    things.push({ z: WALL.base[0][1], el: this.wall(nightK) });
     for (const fr of FRONTS) {
       const over = units.some((u) => {
         const an = this.anim(u);
