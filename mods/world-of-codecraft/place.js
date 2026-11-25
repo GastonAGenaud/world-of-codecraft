@@ -455,9 +455,12 @@ export default class Place {
       4: { act: "medite", tache: 1, subs: 0, t: n },
     };
     const cyc = props()?.demo === "marche" ? Math.floor(Date.now() / 30000) % 2 : 0;
+    // props.demo "mur": the first four heroes go to the Wailing Wall (done) and back to work every 30 s; the camera follows the warrior (barracks, next to the wall)
+    const wall = props()?.demo === "mur" ? Math.floor(Date.now() / 30000) % 2 : -1;
+    const statusOf = (status, i) => (wall >= 0 && i < 4 ? (wall ? "working" : "done") : cyc && i < 4 ? (status === "idle" ? "working" : "idle") : status);
     return D.map(([status, key, hero], i) => ({
       address: `demo-${i}-${key}`, space: sp?.id, space_name: sp?.name, tab_name: tr("demoTabs")[i],
-      status: cyc && i < 4 ? (status === "idle" ? "working" : "idle") : status, seq: i, focused: false, demoHero: hero, demoAct: ACT[i],
+      status: statusOf(status, i), seq: i, focused: wall >= 0 && i === 1, demoHero: hero, demoAct: wall >= 0 && i < 4 ? undefined : ACT[i],
       program: { key: key === "shell" ? "sh" : key, name: key, shell: false } }));
   }
 
