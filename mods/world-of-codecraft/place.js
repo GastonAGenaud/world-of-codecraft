@@ -4,8 +4,8 @@
 // by tools/bake_world.py into a few big images, day and night, exactly as the approved mocks;
 // only the units, their markers, front cut-outs (depth), glows and smoke are live.
 //
-// Every agent is a hero of its class: working = `work` loop at its class building; idle = `rest`
-// at the campfire; blocked = `idle` + flashing `!` + red ring + speech bubble; done = `idle` + gold
+// Every agent is a hero of its class: working = `work` loop at its class building; idle (suspended) = at
+// the Wailing Wall, a hand on it, like done; blocked = `idle` + flashing `!` + red ring + speech bubble; done = `idle` + gold
 // `?` + halo, standing at the Wailing Wall with a hand on it (it leaves the wall when it sets out again). When the spot changes the hero walks there along the road (walk_dl / walk_ur and their
 // mirrors), at its own speed. Frame-by-frame animation uses one shared data timer (~10 fps), only
 // while a visible unit needs it; movement itself is a native `left`/`top` transition. Heroes whose
@@ -44,6 +44,8 @@ const RACE_EN = { elfe: "elf", orque: "orc", humain: "human", "mort-vivant": "un
 const CLS_EN = { mage: "mage", artificier: "artificer", guerrier: "warrior", pretre: "priest", rodeur: "ranger", voleur: "rogue" };
 const RACE_FR = Object.fromEntries(Object.entries(RACE_EN).map(([f, e]) => [e, f]));
 const CLS_FR = Object.fromEntries(Object.entries(CLS_EN).map(([f, e]) => [e, f]));
+/** Statuses whose heroes stand at the Wailing Wall: the agent is not working (finished or suspended). */
+const atWall = (st) => st === "done" || st === "idle";
 const placeName = (cls) => BUILDINGS[WORK[cls]]?.nom ?? market();
 
 // ------------------------------------------------------------------ the road
@@ -114,7 +116,7 @@ export default class Place {
       for (const a of list) {
         const was = this.prev.get(a.address);
         const h = heroOf(a.address, a.program);
-        const where = a.status === "idle" ? tr("campfire") : a.status === "done" ? BUILDINGS.mur.nom : placeName(h.cls);
+        const where = atWall(a.status) ? BUILDINGS.mur.nom : placeName(h.cls);
         const quest = a.tab_name && !/^\d+$/.test(a.tab_name) ? tr("quoted", clip(a.tab_name, 34)) : "";
         if (!was) this.say(`[${where}] ${tr("arrives", heroTitle(h), h.prog)}`, a.status, a.address);
         else if (was.status !== a.status) {
@@ -152,7 +154,7 @@ export default class Place {
     const want = list.map((a) => {
       const h = a.demoHero ? { ...heroOf(a.address, a.program), race: RACE_FR[a.demoHero.split("-")[0]], cls: CLS_FR[a.demoHero.split("-")[1]] } : heroOf(a.address, a.program);
       const scout = a.status === "working" && this.act.scene(a.address) === "eclaire" && LISIERE[WORK[h.cls]];
-      const group = a.status === "idle" ? "repos" : a.status === "done" ? "mur" : scout ? `lisiere-${WORK[h.cls]}` : WORK[h.cls];
+      const group = atWall(a.status) ? "mur" : scout ? `lisiere-${WORK[h.cls]}` : WORK[h.cls];
       const spots = group === "repos" ? REST : group === "mur" ? WALL_SPOTS : scout ? LISIERE[WORK[h.cls]] : SPOTS[group];
       return { a, h, group, spots };
     });
@@ -203,10 +205,10 @@ export default class Place {
     const H = HEROES[u.key];
     let name;
     if (u.leg) name = walkAnim(u.leg.b[0] - u.leg.a[0], u.leg.b[1] - u.leg.a[1]);
-    else if (u.a.status === "done") name = "walk_ur"; // back turned, a hand on the wall: one still frame
+    else if (atWall(u.a.status)) name = "walk_ur"; // back turned, a hand on the wall: one still frame
     else name = (u.a.status === "working" && this.act.anim(u.a.address)) || (u.a.status === "working" ? "work" : u.a.status === "idle" ? "rest" : "idle");
     const info = H?.anims?.[name];
-    if (info) return { name, info, frames: true, still: !u.leg && u.a.status === "done" };
+    if (info) return { name, info, frames: true, still: !u.leg && atWall(u.a.status) };
     return { name: "stand", info: H?.stand ?? { w: 50, h: 85, ax: 25, ay: 83 }, frames: false };
   }
 
@@ -229,8 +231,8 @@ export default class Place {
     if (st === "blocked" && !u.leg) el = el.child(image(`${MONDE}/ring-blocked.png`).absolute().left(-30).top(-17).w(60).h(33).when(this.live, (e) => e.loop("opacity", { from: 0.2, to: 1, period: 460 })));
     if (st === "done" && !u.leg) el = el.child(image(`${MONDE}/ring-done.png`).absolute().left(-30).top(-17).w(60).h(33).when(this.live, (e) => e.loop("opacity", { from: 0.45, to: 1, period: 1100 })));
 
-    // a done hero touches the wall: a rune glows on the stones under its hand (behind the sprite)
-    if (st === "done" && !u.leg) {
+    // a hero at the wall touches it: a rune glows on the stones under its hand (behind the sprite)
+    if (atWall(st) && !u.leg) {
       el = el.child(div().absolute().left(6).top(-50).size(14).rounded_full().bg(`${C.goldLight}55`)
         .when(this.live, (e) => e.loop("opacity", { from: 0.3, to: 1, period: 1400 })));
       el = el.child(div().absolute().left(11).top(-45).size(4).bg(C.goldLight)
@@ -272,7 +274,6 @@ export default class Place {
       el = el.child(div().absolute().left(-22).top(head + 10).size(3).bg(C.goldLight).when(this.live, (e) => e.loop("top", { from: head + 30, to: head - 6, period: 1000 })).when(this.live, (e) => e.loop("opacity", { from: 1, to: 0, period: 1000 })));
       el = el.child(div().absolute().left(20).top(head + 20).size(3).bg("#fff2c0").when(this.live, (e) => e.loop("top", { from: head + 40, to: head + 2, period: 1300 })).when(this.live, (e) => e.loop("opacity", { from: 1, to: 0, period: 1300 })));
     }
-    if (st === "idle" && !u.leg) el = el.child(image(`${ART}/z.svg`).absolute().left(14).top(head).size(8).when(this.live, (e) => e.loop("top", { from: head + 10, to: head - 14, period: 2600 })).when(this.live, (e) => e.loop("opacity", { from: 1, to: 0, period: 2600 })));
     if (!u.leg && !a.guard) el = el.children(this.act.layers(u, head, night, t));
     if (selected) {
       el = el.child(div().absolute().left(-15).top(head - 9).w(30).h(5).bg("#1b1420").border_1().border_color("#000000")
