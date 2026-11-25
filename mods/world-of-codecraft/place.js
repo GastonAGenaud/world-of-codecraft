@@ -4,8 +4,8 @@
 // by tools/bake_world.py into a few big images, day and night, exactly as the approved mocks;
 // only the units, their markers, front cut-outs (depth), glows and smoke are live.
 //
-// Every agent is a hero of its class: working = `work` loop at its class building; idle (suspended) = at
-// the Wailing Wall, a hand on it, like done; blocked = `idle` + flashing `!` + red ring + speech bubble; done = `idle` + gold
+// Every agent is a hero of its class: working = `work` loop at its class building; idle (suspended) and
+// blocked = at the Wailing Wall, a hand on it, like done; blocked = `idle` + flashing `!` + red ring + speech bubble; done = `idle` + gold
 // `?` + halo, standing at the Wailing Wall with a hand on it (it leaves the wall when it sets out again). When the spot changes the hero walks there along the road (walk_dl / walk_ur and their
 // mirrors), at its own speed. Frame-by-frame animation uses one shared data timer (~10 fps), only
 // while a visible unit needs it; movement itself is a native `left`/`top` transition. Heroes whose
@@ -44,8 +44,8 @@ const RACE_EN = { elfe: "elf", orque: "orc", humain: "human", "mort-vivant": "un
 const CLS_EN = { mage: "mage", artificier: "artificer", guerrier: "warrior", pretre: "priest", rodeur: "ranger", voleur: "rogue" };
 const RACE_FR = Object.fromEntries(Object.entries(RACE_EN).map(([f, e]) => [e, f]));
 const CLS_FR = Object.fromEntries(Object.entries(CLS_EN).map(([f, e]) => [e, f]));
-/** Statuses whose heroes stand at the Wailing Wall: the agent is not working (finished or suspended). */
-const atWall = (st) => st === "done" || st === "idle";
+/** Statuses whose heroes stand at the Wailing Wall: the agent is not working (finished, suspended or blocked). */
+const atWall = (st) => st === "done" || st === "idle" || st === "blocked";
 const placeName = (cls) => BUILDINGS[WORK[cls]]?.nom ?? market();
 
 // ------------------------------------------------------------------ the road
